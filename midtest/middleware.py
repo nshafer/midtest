@@ -1,11 +1,15 @@
 from time import time
 
+from django.conf import settings
 from django.db import connection
 from django.template.loader import render_to_string
 
 
 def test_middleware(get_response):
     def middleware(request):
+        if not settings.DEBUG:
+            return get_response(request)
+
         # Get beginning stats
         start_queries = len(connection.queries)
         start_time = time()
