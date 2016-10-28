@@ -1,6 +1,7 @@
 from time import time
 
 from django.db import connection
+from django.template.loader import render_to_string
 
 
 def test_middleware(get_response):
@@ -21,13 +22,14 @@ def test_middleware(get_response):
                 db_time += float(query['time'])
         py_time = total_time - db_time
 
-        stats = b"Total Time: %(total)f, Python Time: %(py)f, DB Time: %(db)f, Queries: %(queries)d" % {
-            b'total': total_time,
-            b'py': py_time,
-            b'db': db_time,
-            b'queries': queries
-        }
+        # Render the result
+        stats = render_to_string("stats_fragment.html", {
+            'total_time': total_time,
+            'py_time': py_time,
+            'db_time': db_time,
+            'queries': queries,
+        })
 
-        response.content = response.content.replace(b"<!-- STATS -->", stats)
+        response.content = response.content.replace(b"<!-- STATS -->", response.make_bytes(stats))
         return response
     return middleware
